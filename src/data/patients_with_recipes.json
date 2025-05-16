@@ -1,0 +1,43 @@
+[
+  {
+    "id": 1,
+    "name": "John Doe",
+    "birthday": "1990-01-01",
+    "sex": "Male",
+    "age": 35,
+    "recipes": [
+      {
+        "name": "8 Kräuterbitter",
+        "source": "www.biopure.eu",
+        "instructions": "15-15-15 Tr. m. etw. Wasser v.d.E.",
+        "notes": "Therapeutennummer D-10410 = Rabatt"
+      },
+      {
+        "name": "Absinthium, Nestmann",
+        "source": "Apotheke",
+        "instructions": "m.Wasser 15-15-15 Tr. v.d.E."
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "name": "Jane Smith",
+    "birthday": "1985-05-15",
+    "sex": "Female",
+    "age": 40,
+    "recipes": [
+      {
+        "name": "Acidofilna Witamina C",
+        "source": "www.mynarum.com",
+        "instructions": "1-0-0 Sachet. v.d.E.",
+        "notes": "Rabattcode: narine-32959"
+      },
+      {
+        "name": "Adapto Balance",
+        "source": "www.natugena.de",
+        "instructions": "1-0-1 Kps. v.d.E.",
+        "notes": "Gutscheincode: 7254 (10 EUR Rabatt auf 1.Bestellung)"
+      }
+    ]
+  }
+]
