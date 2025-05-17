@@ -12,6 +12,7 @@ const Login = ({ onAuthenticate }) => {
   const [currentPass, setCurrentPass] = useState("");
   const [newPass, setNewPass] = useState("");
   const [confirmNewPass, setConfirmNewPass] = useState("");
+  const [adminPass, setAdminPass] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -39,6 +40,15 @@ const Login = ({ onAuthenticate }) => {
   const handleChangePasscode = async (e) => {
     e.preventDefault();
     setLoading(true);
+    // Fetch admin passcode from Firestore
+    const adminRef = doc(db, "settings", "adminPasscode");
+    const adminSnap = await getDoc(adminRef);
+    const adminPasscode = adminSnap.exists() ? adminSnap.data().value : "admin1234";
+    if (adminPass !== adminPasscode) {
+      toast.error("Admin passcode is incorrect.");
+      setLoading(false);
+      return;
+    }
     const storedPass = await fetchPasscode();
     if (currentPass !== storedPass) {
       toast.error("Current passcode is incorrect.");
@@ -59,7 +69,7 @@ const Login = ({ onAuthenticate }) => {
     await setDoc(doc(db, "settings", "coachPasscode"), { value: newPass });
     toast.success("Passcode changed successfully!");
     setShowChangePasscode(false);
-    setCurrentPass(""); setNewPass(""); setConfirmNewPass("");
+    setCurrentPass(""); setNewPass(""); setConfirmNewPass(""); setAdminPass("");
     setLoading(false);
   };
 
@@ -111,6 +121,14 @@ const Login = ({ onAuthenticate }) => {
         </button>
         {showChangePasscode && (
           <form onSubmit={handleChangePasscode} className="mt-4 flex flex-col space-y-3">
+            <input
+              type="password"
+              value={adminPass}
+              onChange={e => setAdminPass(e.target.value)}
+              placeholder="Admin passcode"
+              className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              disabled={loading}
+            />
             <input
               type="password"
               value={currentPass}
