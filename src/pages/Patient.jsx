@@ -5,6 +5,7 @@ import { collection, getDocs, doc, deleteDoc, updateDoc, addDoc } from 'firebase
 import { db } from '../firebase';
 import PatienForm from '../components/PatientForm';
 import { toast } from 'react-toastify';
+import { useLang } from "../useLang";
 
 const Patients = () => {
   const [patients, setPatients] = useState([]);
@@ -12,6 +13,7 @@ const Patients = () => {
   const [showForm, setShowForm] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState(null);
   const navigate = useNavigate();
+  const { t } = useLang();
 
   useEffect(() => {
     const isAuthenticated = localStorage.getItem("isAuthenticated");
@@ -119,7 +121,7 @@ const Patients = () => {
         <div className="flex justify-between items-center mb-6">
           <input
             type="text"
-            placeholder="Search patients..."
+            placeholder={t.searchPatients}
             onChange={(e) => handleSearch(e.target.value)}
             className="border border-gray-300 rounded-lg py-2 px-4 w-1/2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
@@ -127,21 +129,21 @@ const Patients = () => {
             onClick={handleNewPatientClick}
             className="bg-blue-600 text-white py-2 px-6 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           >
-            + Add New Patient
+            {t.addNewPatient}
           </button>
         </div>
 
         <div className="bg-white shadow-lg rounded-lg p-6">
-          <h2 className="text-2xl font-semibold mb-6 text-center text-gray-700">Patient List</h2>
+          <h2 className="text-2xl font-semibold mb-6 text-center text-gray-700">{t.patientList}</h2>
           <table className="w-full border-collapse border border-gray-300 text-center">
             <thead>
               <tr className="bg-gray-200">
                 <th className="border border-gray-300 py-3 px-4">#</th>
-                <th className="border border-gray-300 py-3 px-4">Name</th>
-                <th className="border border-gray-300 py-3 px-4">Birthday</th>
-                <th className="border border-gray-300 py-3 px-4">Sex</th>
-                <th className="border border-gray-300 py-3 px-4">Age</th>
-                <th className="border border-gray-300 py-3 px-4">Actions</th>
+                <th className="border border-gray-300 py-3 px-4">{t.name}</th>
+                <th className="border border-gray-300 py-3 px-4">{t.birthday}</th>
+                <th className="border border-gray-300 py-3 px-4">{t.sex}</th>
+                <th className="border border-gray-300 py-3 px-4">{t.age}</th>
+                <th className="border border-gray-300 py-3 px-4">{t.actions}</th>
               </tr>
             </thead>
             <tbody>

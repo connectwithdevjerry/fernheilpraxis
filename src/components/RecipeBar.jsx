@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../firebase"; // adjust path to your firebase config
+import { useLang } from "../useLang";
 
 const RecipeBar = ({
-
-  onEditRemedy,
   onPasteRemedy,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [remedies, setRemedies] = useState([]);
   const [selectedRemedy, setSelectedRemedy] = useState(null);
+  const { t } = useLang();
 
   useEffect(() => {
     const fetchRemedies = async () => {
@@ -29,60 +29,49 @@ const RecipeBar = ({
   }, []);
 
 
-  const filteredRemedies = remedies.filter((remedy) =>
-    remedy.name?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredRemedies = remedies
+    .filter((remedy) =>
+      remedy.name?.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a, b) => a.name.localeCompare(b.name));
 
-  const handlePaste = () => {
-    if (selectedRemedy) {
-      const remedyDetails = ` ${selectedRemedy.name}\n ${
-        selectedRemedy.source
-      }\n ${selectedRemedy.instructions}\n ${
-        selectedRemedy.notes || ""
-      }`;
+  const handleSelectRemedy = (remedy) => {
+    setSelectedRemedy(remedy);
+    if (remedy) {
+      const remedyDetails = ` ${remedy.name}\n ${remedy.source}\n ${remedy.instructions}\n ${remedy.notes || ""}`;
       onPasteRemedy(remedyDetails);
     }
   };
 
   return (
     <div className="p-4 bg-gray-100 shadow-md h-full rounded-md">
-      <div className="mb-4 flex flex-wrap gap-2">
+      {/* <div className="mb-4 flex flex-wrap gap-2">
         {selectedRemedy && (
-          <>
-            <button
-              onClick={handlePaste}
-              className="bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600"
-            >
-              Paste
-            </button>
-            <button
-              onClick={() => onEditRemedy(selectedRemedy)}
-              className="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600"
-            >
-              Edit
-            </button>
-          </>
+          <span className="ml-2 px-3 py-1 bg-blue-200 text-blue-800 rounded-full text-sm font-semibold">
+            {t.selected}: {selectedRemedy.name}
+          </span>
         )}
-      </div>
-
+      </div> */}
       <input
         type="text"
-        placeholder="Search remedies..."
+        placeholder={t.searchRemedies}
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
         className="w-full mb-4 p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
       />
-
       <ul className="space-y-2 overflow-y-auto h-[100vh]">
         {filteredRemedies.map((remedy) => (
           <li
             key={remedy.id}
             className={`p-2 bg-white rounded-md shadow-md hover:bg-blue-100 cursor-pointer flex justify-between items-center ${
-              selectedRemedy?.id === remedy.id ? "bg-blue-200" : ""
+              selectedRemedy?.id === remedy.id ? "bg-blue-300 border-2 border-blue-600" : ""
             }`}
-            onClick={() => setSelectedRemedy(remedy)}
+            onClick={() => handleSelectRemedy(remedy)}
           >
             <span>{remedy.name}</span>
+            {selectedRemedy?.id === remedy.id && (
+              <span className="ml-2 text-blue-700 font-bold">{t.selected}</span>
+            )}
           </li>
         ))}
       </ul>

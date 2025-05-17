@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { db } from "../firebase";
-import { collection, getDocs } from "firebase/firestore";
-import { FaCopy } from "react-icons/fa";
+import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
+import { FaCopy, FaTrash } from "react-icons/fa";
+import { useLang } from "../useLang";
 
 const PatientPrescriptions = () => {
   const { patientId } = useParams();
   const navigate = useNavigate();
   const [prescriptions, setPrescriptions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { t } = useLang();
 
   useEffect(() => {
     const isAuthenticated = localStorage.getItem("isAuthenticated");
@@ -47,41 +49,61 @@ const PatientPrescriptions = () => {
     navigate(`/patients/${patientId}/recipes`);
   };
 
+  const handleDeletePrescription = async (prescriptionId) => {
+    if (!window.confirm(t.confirmDeletePrescription)) return;
+    try {
+      await deleteDoc(doc(db, "patients", patientId, "prescriptions", prescriptionId));
+      setPrescriptions((prev) => prev.filter((p) => p.id !== prescriptionId));
+      window.toast && window.toast.success ? window.toast.success(t.prescriptionDeleted) : alert(t.prescriptionDeleted);
+    } catch {
+      window.toast && window.toast.error ? window.toast.error(t.failedToDeletePrescription) : alert(t.failedToDeletePrescription);
+    }
+  };
+
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold">Prescriptions</h2>
+        <h2 className="text-xl font-bold">{t.prescriptions}</h2>
         <button
           onClick={handleCreatePrescription}
           className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
         >
-          + Create Prescription
+          + {t.createPrescription}
         </button>
       </div>
 
       {loading ? (
-        <p>Loading...</p>
+        <p>{t.loading}</p>
       ) : prescriptions.length === 0 ? (
-        <p className="text-gray-500">No prescriptions found.</p>
+        <p className="text-gray-500">{t.noPrescriptionsFound}</p>
       ) : (
         <ul className="space-y-4">
           {prescriptions.map((p) => (
             <li key={p.id} className="border p-4 rounded-md shadow">
-              <p><strong>Date:</strong> {p.date?.toDate().toLocaleString()}</p>
-              <p><strong>Coach:</strong> {p.coachName}</p>
+              <p><strong>{t.date}:</strong> {p.date?.toDate().toLocaleString()}</p>
+              <p><strong>{t.coach}:</strong> {p.coachName}</p>
               <div>
-                <strong>Content:</strong>
+                <strong>{t.content}:</strong>
                 <div
                   className="mt-2 p-2 border rounded bg-gray-50"
                   dangerouslySetInnerHTML={{ __html: p.content }}
                 />
-                <button
-                  onClick={() => handleCopyToRecipe(p)}
-                  className="mt-2 flex items-center bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2"
-                >
-                  <FaCopy className="w-6 h-6 mr-2" />
-                  Copy
-                </button>
+                <div className="flex gap-2 mt-2">
+                  <button
+                    onClick={() => handleCopyToRecipe(p)}
+                    className="flex items-center bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2"
+                  >
+                    <FaCopy className="w-6 h-6 mr-2" />
+                    {t.copy}
+                  </button>
+                  <button
+                    onClick={() => handleDeletePrescription(p.id)}
+                    className="flex items-center bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2"
+                  >
+                    <FaTrash className="w-5 h-5 mr-2" />
+                    {t.delete}
+                  </button>
+                </div>
               </div>
             </li>
           ))}

@@ -1,9 +1,11 @@
 import React from 'react'
+import { useLang } from "../useLang";
 
 const AllPrescribtion = ({ recipes, onSelectRecipe }) => {
+  const { t } = useLang();
   return (
     <div>
-      <h2 className="text-xl font-bold text-gray-800 mb-4">All Prescriptions</h2>
+      <h2 className="text-xl font-bold text-gray-800 mb-4">{t.patientList}</h2>
       <ul className="list-none space-y-2">
         {recipes.map((recipe, index) => (
           <li
@@ -19,4 +21,4 @@ const AllPrescribtion = ({ recipes, onSelectRecipe }) => {
   );
 };
 
-export default AllPrescribtion
+export default AllPrescribtion;

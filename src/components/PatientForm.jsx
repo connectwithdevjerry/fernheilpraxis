@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
+import { useLang } from "../useLang";
 
 const PatientForm = ({ patient, onSave }) => {
+  const { t } = useLang();
+
   const [formData, setFormData] = useState({
     name: patient?.name || "",
     birthday: patient?.birthday || "",
@@ -21,12 +24,12 @@ const PatientForm = ({ patient, onSave }) => {
   return (
     <div className="p-6 bg-white shadow-md rounded-md max-w-md mx-auto">
       <h2 className="text-2xl font-bold mb-4">
-        {patient ? "Edit Patient" : "Add Patient"}
+        {patient ? t.update : t.addNewPatient}
       </h2>
       <form className="space-y-4" onSubmit={handleSubmit}>
         <div>
           <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-            Name
+            {t.name}
           </label>
           <input
             type="text"
@@ -35,13 +38,13 @@ const PatientForm = ({ patient, onSave }) => {
             value={formData.name}
             onChange={handleChange}
             className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm p-2"
-            placeholder="Enter patient's name"
+            placeholder={t.name}
           />
         </div>
 
         <div>
           <label htmlFor="birthday" className="block text-sm font-medium text-gray-700">
-            Birthday
+            {t.birthday}
           </label>
           <input
             type="date"
@@ -55,7 +58,7 @@ const PatientForm = ({ patient, onSave }) => {
 
         <div>
           <label htmlFor="sex" className="block text-sm font-medium text-gray-700">
-            Sex
+            {t.sex}
           </label>
           <select
             id="sex"
@@ -73,7 +76,7 @@ const PatientForm = ({ patient, onSave }) => {
 
         <div>
           <label htmlFor="age" className="block text-sm font-medium text-gray-700">
-            Age
+            {t.age}
           </label>
           <input
             type="number"
@@ -82,7 +85,7 @@ const PatientForm = ({ patient, onSave }) => {
             value={formData.age}
             onChange={handleChange}
             className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm p-2"
-            placeholder="Enter patient's age"
+            placeholder={t.age}
           />
         </div>
 
@@ -90,7 +93,7 @@ const PatientForm = ({ patient, onSave }) => {
           type="submit"
           className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
         >
-          {patient ? "Update" : "Submit"}
+          {patient ? t.update : t.submit}
         </button>
       </form>
     </div>

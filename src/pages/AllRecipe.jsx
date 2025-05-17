@@ -3,6 +3,7 @@ import { collection, getDocs, doc, deleteDoc, updateDoc, addDoc } from "firebase
 import { db } from "../firebase"; // adjust path to your firebase config
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useLang } from "../useLang";
 
 const AllRecipe = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -10,6 +11,7 @@ const AllRecipe = () => {
   const [selectedRemedy, setSelectedRemedy] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editRemedy, setEditRemedy] = useState(null);
+  const { t } = useLang();
 
   useEffect(() => {
     const fetchRemedies = async () => {
@@ -124,10 +126,10 @@ const AllRecipe = () => {
     <div className="p-4 bg-gray-100 shadow-md h-full rounded-md">
       <div className="mb-4 flex justify-between items-center">
         <button
-          onClick={handleAddRecipe} // Updated to use handleAddRecipe
+          onClick={handleAddRecipe}
           className="bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600"
         >
-          + Add Recipe
+          + {t.addRecipe}
         </button>
       </div>
 
@@ -138,13 +140,13 @@ const AllRecipe = () => {
               onClick={handleEdit}
               className="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600"
             >
-              Edit
+              {t.edit}
             </button>
             <button
               onClick={handleDelete}
               className="bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600"
             >
-              Delete
+              {t.delete}
             </button>
           </>
         )}
@@ -152,7 +154,7 @@ const AllRecipe = () => {
 
       <input
         type="text"
-        placeholder="Search remedies..."
+        placeholder={t.searchRemedies}
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
         className="w-full mb-4 p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
@@ -176,7 +178,7 @@ const AllRecipe = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="bg-white p-6 rounded-md shadow-md w-11/12 md:w-1/2">
             <h2 className="text-xl font-bold mb-4">
-              {editRemedy?.id ? "Edit Recipe" : "Add Recipe"}
+              {editRemedy?.id ? t.editRecipe : t.addRecipe}
             </h2>
             <form
               className="space-y-4"
@@ -184,7 +186,7 @@ const AllRecipe = () => {
             >
               <input
                 type="text"
-                placeholder="Name"
+                placeholder={t.name}
                 value={editRemedy?.name || ""}
                 onChange={(e) =>
                   setEditRemedy({ ...editRemedy, name: e.target.value })
@@ -193,7 +195,7 @@ const AllRecipe = () => {
               />
               <input
                 type="text"
-                placeholder="Source"
+                placeholder={t.source}
                 value={editRemedy?.source || ""}
                 onChange={(e) =>
                   setEditRemedy({ ...editRemedy, source: e.target.value })
@@ -201,7 +203,7 @@ const AllRecipe = () => {
                 className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
               />
               <textarea
-                placeholder="Instructions"
+                placeholder={t.instructions}
                 value={editRemedy?.instructions || ""}
                 onChange={(e) =>
                   setEditRemedy({ ...editRemedy, instructions: e.target.value })
@@ -209,7 +211,7 @@ const AllRecipe = () => {
                 className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
               />
               <textarea
-                placeholder="Notes"
+                placeholder={t.notes}
                 value={editRemedy?.notes || ""}
                 onChange={(e) =>
                   setEditRemedy({ ...editRemedy, notes: e.target.value })
@@ -222,13 +224,13 @@ const AllRecipe = () => {
                   onClick={() => setShowAddForm(false)}
                   className="bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400"
                 >
-                  Cancel
+                  {t.cancel}
                 </button>
                 <button
                   type="submit"
                   className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                 >
-                  {editRemedy?.id ? "Update" : "Add"}
+                  {editRemedy?.id ? t.update : t.add}
                 </button>
               </div>
             </form>

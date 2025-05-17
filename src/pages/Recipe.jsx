@@ -16,6 +16,7 @@ import { useParams } from "react-router-dom";
 import { db } from "../firebase";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useLang } from "../useLang";
 
 // Formatting the date
 const formatTodayDate = () => {
@@ -45,6 +46,8 @@ const Recipe = () => {
 
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef();
+
+  const { t } = useLang();
 
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
@@ -191,15 +194,17 @@ const Recipe = () => {
   const handlePasteRemedy = (remedyDetails) => {
     const textarea = document.querySelector("textarea");
     if (textarea) {
+      // Replace undefined with empty string in remedyDetails
+      const safeRemedyDetails = remedyDetails.replace(/undefined/g, "");
       const start = textarea.selectionStart;
       const end = textarea.selectionEnd;
       const text = textarea.value;
       const before = text.substring(0, start);
       const after = text.substring(end, text.length);
-      textarea.value = `${before}${remedyDetails}${after}`;
+      textarea.value = `${before}${safeRemedyDetails}${after}`;
       textarea.setSelectionRange(
-        start + remedyDetails.length,
-        start + remedyDetails.length
+        start + safeRemedyDetails.length,
+        start + safeRemedyDetails.length
       );
       textarea.focus();
       setSelectedRecipe(textarea.value);
@@ -208,104 +213,144 @@ const Recipe = () => {
 
   const handlePrint = () => {
     const printContent = document.getElementById("print").cloneNode(true);
-    // Expand all textareas or scrollable divs to show full content
-    const scrollables = printContent.querySelectorAll(
-      "textarea, [style*='overflow']"
-    );
-    scrollables.forEach((el) => {
-      el.style.height = el.scrollHeight + "700px"; // Expand to full content
-      el.style.overflow = "visible";
+
+    // Replace textarea with plain text block
+    const textareas = printContent.querySelectorAll("textarea");
+    textareas.forEach((textarea) => {
+      const contentDiv = document.createElement("div");
+      contentDiv.textContent = textarea.value;
+      contentDiv.style.whiteSpace = "pre-wrap";
+      contentDiv.style.border = "1px solid #ccc";
+      contentDiv.style.padding = "1rem";
+      contentDiv.style.minHeight = "200px";
+      contentDiv.style.fontFamily = "inherit";
+      textarea.parentNode.replaceChild(contentDiv, textarea);
     });
-    // Remove the Save to Database button from the cloned content
-    const buttons = printContent.getElementsByTagName("button");
-    for (let i = 0; i < buttons.length; i++) {
-      if (buttons[i].textContent.includes("Save to Database")) {
-        buttons[i].remove();
-        break;
-      }
+
+    // Replace coach input
+    const coachInput = printContent.querySelector("#coach-name");
+    if (coachInput) {
+      const coachText = document.createElement("strong");
+      coachText.textContent = coachInput.value;
+      coachInput.parentNode.replaceChild(coachText, coachInput);
     }
 
-    // Hide all input borders in the print content
-    const inputs = printContent.querySelectorAll("input");
-    inputs.forEach((input) => {
-      input.style.border = "none";
-    });
+    // Replace date input
+    const dateInput = printContent.querySelector('input[type="date"]');
+    if (dateInput) {
+      const formattedDate = new Date(
+        dateInput.value || new Date()
+      ).toLocaleDateString();
+      const dateText = document.createElement("strong");
+      dateText.textContent = formattedDate;
+      dateText.style.float = "right";
+      dateText.style.fontWeight = "bold";
+      dateInput.parentNode.replaceChild(dateText, dateInput);
+    }
 
-    const originalContent = document.body.innerHTML;
-    document.body.innerHTML = printContent.innerHTML;
-    window.print();
-    document.body.innerHTML = originalContent;
-    window.location.reload(); // Reload to restore the original content
+    // Sync patient name
+    const livePatientName = document.getElementById("user-name");
+    const clonedPatientName = printContent.querySelector("#user-name");
+    if (clonedPatientName && livePatientName) {
+      clonedPatientName.textContent = livePatientName.textContent;
+    }
+
+    // Remove Save button
+    const saveBtn = printContent.querySelector("button");
+    if (saveBtn) saveBtn.remove();
+
+    // Open new window for print so original stays intact
+    const printWindow = window.open("", "", "width=900,height=650");
+    if (printWindow) {
+      printWindow.document.write(`
+      <html>
+        <head>
+          <title>Prescription Print</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 20px; }
+            strong { font-weight: bold; }
+          </style>
+        </head>
+        <body>${printContent.innerHTML}</body>
+      </html>
+    `);
+      printWindow.document.close();
+      printWindow.focus();
+      printWindow.print();
+      printWindow.close();
+    }
   };
 
-const handleSaveAsPDF = () => {
-  const doc = new jsPDF();
-  const marginLeft = 15;
-  let currentY = 20;
+  const handleSaveAsPDF = () => {
+    const doc = new jsPDF();
+    const marginLeft = 15;
+    let currentY = 20;
 
-  const printDiv = document.getElementById("print");
+    const printDiv = document.getElementById("print");
 
-  if (!printDiv) {
-    alert("Print section not found.");
-    return;
-  }
+    if (!printDiv) {
+      alert("Print section not found.");
+      return;
+    }
 
-  // Fetch dynamic values
-  const coachName = document.getElementById("coach-name")?.value || "N/A";
-  const prescriptionDate = document.querySelector("input[type='date']")?.value || "N/A";
-  const patientName = document.getElementById("user-name")?.textContent.trim() || "N/A";
-  const recipeText = printDiv.querySelector("textarea")?.value || "No recipe provided.";
+    // Fetch dynamic values
+    const coachName = document.getElementById("coach-name")?.value || "N/A";
+    const prescriptionDate =
+      document.querySelector("input[type='date']")?.value || "N/A";
+    const patientName =
+      document.getElementById("user-name")?.textContent.trim() || "N/A";
+    const recipeText =
+      printDiv.querySelector("textarea")?.value || "No recipe provided.";
 
-  // === Header ===
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(16);
-  doc.text("Fernheilpraxis - Praxisgemeinschaft", marginLeft, currentY);
-  currentY += 8;
+    // === Header ===
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(16);
+    doc.text("Fernheilpraxis - Praxisgemeinschaft", marginLeft, currentY);
+    currentY += 8;
 
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(12);
-  doc.text("Heilpraktiker Matthias Cebula", marginLeft, currentY);
-  currentY += 6;
-  doc.setTextColor(33, 150, 243); // Blue color
-  doc.text("www.fernheilpraxis.com", marginLeft, currentY);
-  currentY += 6;
-  doc.setTextColor(100, 100, 100); // Dark gray
-  doc.text("info@fernheilpraxis.com", marginLeft, currentY);
-  currentY += 8;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(12);
+    doc.text("Heilpraktiker Matthias Cebula", marginLeft, currentY);
+    currentY += 6;
+    doc.setTextColor(33, 150, 243); // Blue color
+    doc.text("www.fernheilpraxis.com", marginLeft, currentY);
+    currentY += 6;
+    doc.setTextColor(100, 100, 100); // Dark gray
+    doc.text("info@fernheilpraxis.com", marginLeft, currentY);
+    currentY += 8;
 
-  // Line separator
-  doc.setDrawColor(100);
-  doc.setLineWidth(0.5);
-  doc.line(marginLeft, currentY, 200 - marginLeft, currentY);
-  currentY += 10;
+    // Line separator
+    doc.setDrawColor(100);
+    doc.setLineWidth(0.5);
+    doc.line(marginLeft, currentY, 200 - marginLeft, currentY);
+    currentY += 10;
 
-  // === Details ===
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(0, 0, 0);
-  doc.text("Prescription Details", marginLeft, currentY);
-  currentY += 8;
+    // === Details ===
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(0, 0, 0);
+    doc.text("Prescription Details", marginLeft, currentY);
+    currentY += 8;
 
-  doc.setFont("helvetica", "normal");
-  doc.text(`Coach: ${coachName}`, marginLeft, currentY);
-  currentY += 6;
-  doc.text(`Date: ${prescriptionDate}`, marginLeft, currentY);
-  currentY += 6;
-  doc.text(`Patient: ${patientName}`, marginLeft, currentY);
-  currentY += 10;
+    doc.setFont("helvetica", "normal");
+    doc.text(`Coach: ${coachName}`, marginLeft, currentY);
+    currentY += 6;
+    doc.text(`Date: ${prescriptionDate}`, marginLeft, currentY);
+    currentY += 6;
+    doc.text(`Patient: ${patientName}`, marginLeft, currentY);
+    currentY += 10;
 
-  // === Recipe Content ===
-  doc.setFont("helvetica", "bold");
-  doc.text("Recipe", marginLeft, currentY);
-  currentY += 8;
+    // === Recipe Content ===
+    doc.setFont("helvetica", "bold");
+    doc.text("Recipe", marginLeft, currentY);
+    currentY += 8;
 
-  doc.setFont("helvetica", "normal");
-  const wrappedText = doc.splitTextToSize(recipeText, 180);
-  doc.text(wrappedText, marginLeft, currentY);
+    doc.setFont("helvetica", "normal");
+    const wrappedText = doc.splitTextToSize(recipeText, 180);
+    doc.text(wrappedText, marginLeft, currentY);
 
-  // Save the PDF
-  doc.save("prescription.pdf");
-};
-
+    // Save the PDF
+    doc.save("prescription.pdf");
+  };
 
   return (
     <div className="flex flex-col md:flex-row bg-gray-50 min-h-screen">
@@ -328,12 +373,12 @@ const handleSaveAsPDF = () => {
         >
           <div className="flex w-1/4 gap-4 items-center">
             <label htmlFor="coach-name" className="text-gray-700 font-medium">
-              Coach:
+              {t.coach || "Coach:"}
             </label>
             <input
               id="coach-name"
               type="text"
-              placeholder="Coach Name"
+              placeholder={t.coachName || "Coach Name"}
               className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
               value={coachName}
               onChange={(e) => setCoachName(e.target.value)}
@@ -349,7 +394,7 @@ const handleSaveAsPDF = () => {
         </div>
         <div className="flex items-center gap-4 mb-4">
           <label className="text-gray-700 font-medium" htmlFor="">
-            Patient:
+            {t.patient || "Patient:"}
           </label>
           <p className="font-bold" id="user-name"></p>
         </div>
@@ -357,13 +402,15 @@ const handleSaveAsPDF = () => {
           value={selectedRecipe}
           onChange={(e) => setSelectedRecipe(e.target.value)}
           className="w-full h-90 md:h-[60vh] border border-gray-300 rounded-md p-4 focus:ring-blue-500 focus:border-blue-500 resize-none"
-          placeholder="Type or edit your recipe here..."
+          placeholder={
+            t.recipePlaceholder || "Type or edit your recipe here..."
+          }
         />
         <button
           onClick={handleSaveToDatabase}
           className="m-auto rounded-lg p-3 font-semibold text-white bg-blue-600"
         >
-          Save to Database
+          {t.saveToDatabase}
         </button>
       </div>
       <div className="w-full md:w-1/4 p-6">
@@ -372,7 +419,7 @@ const handleSaveAsPDF = () => {
             onClick={toggleDropdown}
             className="mb-4 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 w-full md:w-auto shadow-md"
           >
-            Save ▼
+            {t.save} ▼
           </button>
 
           {isOpen && (
@@ -382,15 +429,14 @@ const handleSaveAsPDF = () => {
                   onClick={handlePrint}
                   className="flex items-center w-full text-left px-4 py-2 hover:bg-gray-100"
                 >
-                  <FaPrint className="mr-2 text-blue-500" /> Print
+                  <FaPrint className="mr-2 text-blue-500" /> {t.print}
                 </button>
                 <button
                   onClick={handleSaveAsPDF}
                   className="flex items-center w-full text-left px-4 py-2 hover:bg-gray-100"
                 >
-                  <FaFilePdf className="mr-2 text-red-500" /> Save as PDF
+                  <FaFilePdf className="mr-2 text-red-500" /> {t.saveAsPDF}
                 </button>
-                
               </div>
             </div>
           )}
