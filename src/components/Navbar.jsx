@@ -9,6 +9,23 @@ const Navbar = () => {
   useEffect(() => {
     const authState = localStorage.getItem("isAuthenticated");
     setIsAuthenticated(authState === "true");
+
+    // Listen for changes in localStorage (login/logout from other tabs or programmatically)
+    const handleStorage = () => {
+      const updatedAuth = localStorage.getItem("isAuthenticated");
+      setIsAuthenticated(updatedAuth === "true");
+    };
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, []);
+
+  // Update isAuthenticated state on login/logout in the same tab
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const authState = localStorage.getItem("isAuthenticated");
+      setIsAuthenticated(authState === "true");
+    }, 500);
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
