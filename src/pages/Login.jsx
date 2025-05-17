@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { db } from "../firebase";
 
 const Login = ({ onAuthenticate }) => {
   const [passcode, setPasscode] = useState("");
@@ -10,6 +12,7 @@ const Login = ({ onAuthenticate }) => {
   const [currentPass, setCurrentPass] = useState("");
   const [newPass, setNewPass] = useState("");
   const [confirmNewPass, setConfirmNewPass] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -22,32 +25,47 @@ const Login = ({ onAuthenticate }) => {
     }
   }, [navigate, onAuthenticate]);
 
-  // Get passcode from localStorage or fallback to default
-  const getStoredPasscode = () => localStorage.getItem("coachPasscode") || "1234";
+  // Fetch passcode from Firestore
+  const fetchPasscode = async () => {
+    const passRef = doc(db, "settings", "coachPasscode");
+    const passSnap = await getDoc(passRef);
+    if (passSnap.exists()) {
+      return passSnap.data().value;
+    }
+    // If not set, default to '1234'
+    return "1234";
+  };
 
-  const handleChangePasscode = (e) => {
+  const handleChangePasscode = async (e) => {
     e.preventDefault();
-    const storedPass = getStoredPasscode();
+    setLoading(true);
+    const storedPass = await fetchPasscode();
     if (currentPass !== storedPass) {
       toast.error("Current passcode is incorrect.");
+      setLoading(false);
       return;
     }
     if (!newPass || newPass.length < 4) {
       toast.error("New passcode must be at least 4 characters.");
+      setLoading(false);
       return;
     }
     if (newPass !== confirmNewPass) {
       toast.error("New passcodes do not match.");
+      setLoading(false);
       return;
     }
-    localStorage.setItem("coachPasscode", newPass);
+    // Update passcode in Firestore
+    await setDoc(doc(db, "settings", "coachPasscode"), { value: newPass });
     toast.success("Passcode changed successfully!");
     setShowChangePasscode(false);
     setCurrentPass(""); setNewPass(""); setConfirmNewPass("");
+    setLoading(false);
   };
 
-  const handleLogin = () => {
-    const storedPasscode = getStoredPasscode();
+  const handleLogin = async () => {
+    setLoading(true);
+    const storedPasscode = await fetchPasscode();
     if (passcode === storedPasscode) {
       localStorage.setItem("isAuthenticated", "true");
       onAuthenticate();
@@ -56,6 +74,7 @@ const Login = ({ onAuthenticate }) => {
     } else {
       setError("Invalid passcode. Please try again.");
     }
+    setLoading(false);
   };
 
   return (
@@ -72,13 +91,15 @@ const Login = ({ onAuthenticate }) => {
               onChange={(e) => setPasscode(e.target.value)}
               placeholder="Enter your passcode"
               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none mb-4 text-gray-700"
+              disabled={loading}
             />
             {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
             <button
               onClick={handleLogin}
               className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200 mb-2"
+              disabled={loading}
             >
-              Login
+              {loading ? "Loading..." : "Login"}
             </button>
           </>
         )}
@@ -96,6 +117,7 @@ const Login = ({ onAuthenticate }) => {
               onChange={e => setCurrentPass(e.target.value)}
               placeholder="Current passcode"
               className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              disabled={loading}
             />
             <input
               type="password"
@@ -103,6 +125,7 @@ const Login = ({ onAuthenticate }) => {
               onChange={e => setNewPass(e.target.value)}
               placeholder="New passcode"
               className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              disabled={loading}
             />
             <input
               type="password"
@@ -110,12 +133,14 @@ const Login = ({ onAuthenticate }) => {
               onChange={e => setConfirmNewPass(e.target.value)}
               placeholder="Confirm new passcode"
               className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              disabled={loading}
             />
             <button
               type="submit"
               className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition duration-200"
+              disabled={loading}
             >
-              Save New Passcode
+              {loading ? "Saving..." : "Save New Passcode"}
             </button>
           </form>
         )}
