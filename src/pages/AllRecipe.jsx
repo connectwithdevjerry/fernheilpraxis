@@ -138,7 +138,7 @@ const AllRecipe = () => {
           <>
             <button
               onClick={handleEdit}
-              className="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600"
+              className="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-[#2f6e44]"
             >
               {t.edit}
             </button>
@@ -157,7 +157,7 @@ const AllRecipe = () => {
         placeholder={t.searchRemedies}
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
-        className="w-full mb-4 p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+        className="w-full mb-4 p-2 border border-gray-300 rounded-md focus:ring-[#9c3435] focus:border-blue-500"
       />
 
       <ul className="space-y-2 overflow-y-auto h-[100vh]">
@@ -191,7 +191,7 @@ const AllRecipe = () => {
                 onChange={(e) =>
                   setEditRemedy({ ...editRemedy, name: e.target.value })
                 }
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-[#9c3435] focus:border-blue-500"
               />
               <input
                 type="text"
@@ -200,7 +200,7 @@ const AllRecipe = () => {
                 onChange={(e) =>
                   setEditRemedy({ ...editRemedy, source: e.target.value })
                 }
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-[#9c3435] focus:border-blue-500"
               />
               <textarea
                 placeholder={t.instructions}
@@ -208,7 +208,7 @@ const AllRecipe = () => {
                 onChange={(e) =>
                   setEditRemedy({ ...editRemedy, instructions: e.target.value })
                 }
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-[#9c3435] focus:border-blue-500"
               />
               <textarea
                 placeholder={t.notes}
@@ -216,7 +216,7 @@ const AllRecipe = () => {
                 onChange={(e) =>
                   setEditRemedy({ ...editRemedy, notes: e.target.value })
                 }
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-[#9c3435] focus:border-blue-500"
               />
               <div className="flex justify-end space-x-4">
                 <button
@@ -228,7 +228,7 @@ const AllRecipe = () => {
                 </button>
                 <button
                   type="submit"
-                  className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  className="bg-[#2f6e44] text-white py-2 px-4 rounded-md hover:bg-[#a9d15e] focus:outline-none focus:ring-2 focus:ring-[#9c3435] focus:ring-offset-2"
                 >
                   {editRemedy?.id ? t.update : t.add}
                 </button>

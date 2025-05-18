@@ -123,11 +123,11 @@ const Patients = () => {
             type="text"
             placeholder={t.searchPatients}
             onChange={(e) => handleSearch(e.target.value)}
-            className="border border-gray-300 rounded-lg py-2 px-4 w-1/2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="border border-gray-300 rounded-lg py-2 px-4 w-1/2 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#9c3435] focus:border-transparent"
           />
           <button
             onClick={handleNewPatientClick}
-            className="bg-blue-600 text-white py-2 px-6 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="bg-[#2f6e44] text-white py-2 px-6 rounded-lg shadow-md hover:bg-[#a9d15e] focus:outline-none focus:ring-2 focus:ring-[#9c3435] focus:ring-offset-2"
           >
             {t.addNewPatient}
           </button>

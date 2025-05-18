@@ -57,9 +57,11 @@ const translations = {
     newPassNoMatch: "New passcodes do not match.",
     passChanged: "Passcode changed successfully!",
     loginSuccess: "Login successful! Redirecting...",
-    confirmDeletePrescription: "Are you sure you want to delete this prescription?",
+    confirmDeletePrescription:
+      "Are you sure you want to delete this prescription?",
     prescriptionDeleted: "Prescription deleted successfully!",
     failedToDeletePrescription: "Failed to delete prescription.",
+    recipeAdded: "Recipe added successfully!",
     // ...add more as needed
   },
   de: {
@@ -89,7 +91,7 @@ const translations = {
     coach: "Coach",
     content: "Inhalt",
     copy: "Kopieren",
-    addRecipe: "Rezept hinzufügen",
+    addRecipe: "Heilmittel hinzufügen",
     edit: "Bearbeiten",
     delete: "Löschen",
     searchRemedies: "Mittel suchen...",
@@ -102,7 +104,8 @@ const translations = {
     recipe: "Rezept",
     paste: "Einfügen",
     welcomeBack: "Willkommen zurück",
-    enterPasscodeToContinue: "Bitte geben Sie Ihren Zugangscode ein, um fortzufahren",
+    enterPasscodeToContinue:
+      "Bitte geben Sie Ihren Zugangscode ein, um fortzufahren",
     enterYourPasscode: "Geben Sie Ihren Zugangscode ein",
     invalidPasscode: "Ungültiger Zugangscode. Bitte versuchen Sie es erneut.",
     changePasscode: "Passcode ändern",
@@ -121,8 +124,15 @@ const translations = {
     confirmDeletePrescription: "Möchten Sie dieses Rezept wirklich löschen?",
     prescriptionDeleted: "Rezept erfolgreich gelöscht!",
     failedToDeletePrescription: "Löschen des Rezepts fehlgeschlagen.",
+    male: "Männlich",
+    female: "Weiblich",
+    other: "Divers",
+    select: "Auswählen",
+    recipeAdded: "Rezept erfolgreich hinzugefügt!",
+    fillAllFields: "Bitte füllen Sie alle Felder aus.",
+    failedToSavePrescription: "Speichern des Rezepts fehlgeschlagen.",
     // ...add more as needed
-  }
+  },
 };
 
 const LangContext = createContext();

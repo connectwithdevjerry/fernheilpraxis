@@ -4,13 +4,12 @@ import { getFirestore } from "firebase/firestore";
 
 // Firebase config
 const firebaseConfig = {
-  apiKey: "AIzaSyDRZIlt1xkkFp0230fc837ZD9ssb6TrYqY",
-  authDomain: "fernheilpraxis-9449a.firebaseapp.com",
-  projectId: "fernheilpraxis-9449a",
-  storageBucket: "fernheilpraxis-9449a.appspot.com",
-  messagingSenderId: "989539649235",
-  appId: "1:989539649235:web:16425f0858d8268877f626",
-  measurementId: "G-76TS27F02N"
+  apiKey: "AIzaSyANuk0A_i2ucsDoE9MCTnkgBpv-OsoSxEw",
+  authDomain: "rezept-datenbank-25a6b.firebaseapp.com",
+  projectId: "rezept-datenbank-25a6b",
+  storageBucket: "rezept-datenbank-25a6b.firebasestorage.app",
+  messagingSenderId: "556209183780",
+  appId: "1:556209183780:web:970137eef1f7e695814cb1"
 };
 
 // Initialize Firebase

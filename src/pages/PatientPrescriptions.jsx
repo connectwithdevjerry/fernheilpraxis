@@ -4,6 +4,7 @@ import { db } from "../firebase";
 import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
 import { FaCopy, FaTrash } from "react-icons/fa";
 import { useLang } from "../useLang";
+import { toast } from "react-toastify";
 
 const PatientPrescriptions = () => {
   const { patientId } = useParams();
@@ -21,7 +22,12 @@ const PatientPrescriptions = () => {
 
   useEffect(() => {
     const fetchPrescriptions = async () => {
-      const prescriptionsRef = collection(db, "patients", patientId, "prescriptions");
+      const prescriptionsRef = collection(
+        db,
+        "patients",
+        patientId,
+        "prescriptions"
+      );
       const snapshot = await getDocs(prescriptionsRef);
       const data = snapshot.docs.map((doc) => ({
         id: doc.id,
@@ -52,11 +58,13 @@ const PatientPrescriptions = () => {
   const handleDeletePrescription = async (prescriptionId) => {
     if (!window.confirm(t.confirmDeletePrescription)) return;
     try {
-      await deleteDoc(doc(db, "patients", patientId, "prescriptions", prescriptionId));
+      await deleteDoc(
+        doc(db, "patients", patientId, "prescriptions", prescriptionId)
+      );
       setPrescriptions((prev) => prev.filter((p) => p.id !== prescriptionId));
-      window.toast && window.toast.success ? window.toast.success(t.prescriptionDeleted) : alert(t.prescriptionDeleted);
+      toast.success(t.prescriptionDeleted); // Always show toast on success
     } catch {
-      window.toast && window.toast.error ? window.toast.error(t.failedToDeletePrescription) : alert(t.failedToDeletePrescription);
+      toast.error(t.failedToDeletePrescription); // Always show toast on error
     }
   };
 
@@ -66,7 +74,7 @@ const PatientPrescriptions = () => {
         <h2 className="text-xl font-bold">{t.prescriptions}</h2>
         <button
           onClick={handleCreatePrescription}
-          className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+          className="bg-[#2f6e44] text-white px-4 py-2 rounded-md hover:bg-[#a9d15e]"
         >
           + {t.createPrescription}
         </button>
@@ -80,8 +88,12 @@ const PatientPrescriptions = () => {
         <ul className="space-y-4">
           {prescriptions.map((p) => (
             <li key={p.id} className="border p-4 rounded-md shadow">
-              <p><strong>{t.date}:</strong> {p.date?.toDate().toLocaleString()}</p>
-              <p><strong>{t.coach}:</strong> {p.coachName}</p>
+              <p>
+                <strong>{t.date}:</strong> {p.date?.toDate().toLocaleString()}
+              </p>
+              <p>
+                <strong>{t.coach}:</strong> {p.coachName}
+              </p>
               <div>
                 <strong>{t.content}:</strong>
                 <div
@@ -91,7 +103,7 @@ const PatientPrescriptions = () => {
                 <div className="flex gap-2 mt-2">
                   <button
                     onClick={() => handleCopyToRecipe(p)}
-                    className="flex items-center bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2"
+                    className="flex items-center bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-[#2f6e44] focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2"
                   >
                     <FaCopy className="w-6 h-6 mr-2" />
                     {t.copy}

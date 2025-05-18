@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import { useLang } from "../useLang";
 
 const PatientForm = ({ patient, onSave }) => {
@@ -28,7 +28,10 @@ const PatientForm = ({ patient, onSave }) => {
       </h2>
       <form className="space-y-4" onSubmit={handleSubmit}>
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+          <label
+            htmlFor="name"
+            className="block text-sm font-medium text-gray-700"
+          >
             {t.name}
           </label>
           <input
@@ -37,13 +40,16 @@ const PatientForm = ({ patient, onSave }) => {
             name="name"
             value={formData.name}
             onChange={handleChange}
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm p-2"
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-[#9c3435] focus:border-blue-500 sm:text-sm p-2"
             placeholder={t.name}
           />
         </div>
 
         <div>
-          <label htmlFor="birthday" className="block text-sm font-medium text-gray-700">
+          <label
+            htmlFor="birthday"
+            className="block text-sm font-medium text-gray-700"
+          >
             {t.birthday}
           </label>
           <input
@@ -52,12 +58,15 @@ const PatientForm = ({ patient, onSave }) => {
             name="birthday"
             value={formData.birthday}
             onChange={handleChange}
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm p-2"
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-[#9c3435] focus:border-blue-500 sm:text-sm p-2"
           />
         </div>
 
         <div>
-          <label htmlFor="sex" className="block text-sm font-medium text-gray-700">
+          <label
+            htmlFor="sex"
+            className="block text-sm font-medium text-gray-700"
+          >
             {t.sex}
           </label>
           <select
@@ -65,17 +74,21 @@ const PatientForm = ({ patient, onSave }) => {
             name="sex"
             value={formData.sex}
             onChange={handleChange}
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm p-2"
+            style={{ color: formData.sex ? "#2f6e44" : undefined }}
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-[#9c3435]  sm:text-sm p-2"
           >
-            <option value="">Select</option>
-            <option value="male">Male</option>
-            <option value="female">Female</option>
-            <option value="other">Other</option>
+            <option value="">{t.select || "Select"}</option>
+            <option value="male">{t.male || "Male"}</option>
+            <option value="female">{t.female || "Female"}</option>
+            <option value="other">{t.other || "Other"}</option>
           </select>
         </div>
 
         <div>
-          <label htmlFor="age" className="block text-sm font-medium text-gray-700">
+          <label
+            htmlFor="age"
+            className="block text-sm font-medium text-gray-700"
+          >
             {t.age}
           </label>
           <input
@@ -84,14 +97,14 @@ const PatientForm = ({ patient, onSave }) => {
             name="age"
             value={formData.age}
             onChange={handleChange}
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm p-2"
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-[#9c3435]  sm:text-sm p-2"
             placeholder={t.age}
           />
         </div>
 
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          className="w-full bg-bg-[#2f6e44] text-white bg-[#2f6e44] py-2 px-4 rounded-md hover:bg-[#a9d15e] focus:outline-none focus:ring-2 focus:ring-[#9c3435] focus:ring-offset-2"
         >
           {patient ? t.update : t.submit}
         </button>

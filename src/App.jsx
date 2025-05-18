@@ -32,13 +32,13 @@ function App() {
           theme="light"
         />
 
-        <div className="h-[100vh] overflow-hidden">
+        <div className="min-h-screen flex flex-col">
           <Navbar />
-          <div className="flex flex-row h-[100vh]">
-            <div className="w-1/6 bg-gray-200">
+          <div className="flex flex-col md:flex-row flex-1">
+            <div className="w-full md:w-1/6 bg-gray-200">
               <Sidebar />
             </div>
-            <div className="w-5/6 bg-white h-full">
+            <div className="w-full md:w-5/6 bg-white h-full overflow-y-auto">
               <Routes>
                 <Route
                   path="/"

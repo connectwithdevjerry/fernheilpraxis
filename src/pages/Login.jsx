@@ -102,13 +102,13 @@ const Login = ({ onAuthenticate }) => {
               value={passcode}
               onChange={(e) => setPasscode(e.target.value)}
               placeholder={t.enterYourPasscode}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none mb-4 text-gray-700"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9c3435] focus:outline-none mb-4 text-gray-700"
               disabled={loading}
             />
             {error && <p className="text-red-500 text-sm mb-4 text-center">{t.invalidPasscode}</p>}
             <button
               onClick={handleLogin}
-              className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200 mb-2"
+              className="w-full bg-[#2f6e44] text-white py-3 rounded-lg hover:bg-[#a9d15e] focus:outline-none focus:ring-2 focus:ring-[#9c3435] focus:ring-offset-2 transition duration-200 mb-2"
               disabled={loading}
             >
               {loading ? t.loading : t.login}
@@ -117,7 +117,7 @@ const Login = ({ onAuthenticate }) => {
         )}
         <button
           onClick={() => setShowChangePasscode((v) => !v)}
-          className="w-full bg-gray-200 text-gray-800 py-2 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200 mb-2"
+          className="w-full bg-gray-200 text-gray-800 py-2 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-[#9c3435] focus:ring-offset-2 transition duration-200 mb-2"
         >
           {showChangePasscode ? t.cancel : t.changePasscode}
         </button>
@@ -128,7 +128,7 @@ const Login = ({ onAuthenticate }) => {
               value={adminPass}
               onChange={e => setAdminPass(e.target.value)}
               placeholder={t.adminPasscode}
-              className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9c3435] focus:outline-none"
               disabled={loading}
             />
             <input
@@ -136,7 +136,7 @@ const Login = ({ onAuthenticate }) => {
               value={currentPass}
               onChange={e => setCurrentPass(e.target.value)}
               placeholder={t.currentPasscode}
-              className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9c3435] focus:outline-none"
               disabled={loading}
             />
             <input
@@ -144,7 +144,7 @@ const Login = ({ onAuthenticate }) => {
               value={newPass}
               onChange={e => setNewPass(e.target.value)}
               placeholder={t.newPasscode}
-              className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9c3435] focus:outline-none"
               disabled={loading}
             />
             <input
@@ -152,7 +152,7 @@ const Login = ({ onAuthenticate }) => {
               value={confirmNewPass}
               onChange={e => setConfirmNewPass(e.target.value)}
               placeholder={t.confirmNewPasscode}
-              className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9c3435] focus:outline-none"
               disabled={loading}
             />
             <button

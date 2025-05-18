@@ -12,7 +12,7 @@ import {
   getDoc,
   Timestamp,
 } from "firebase/firestore";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { db } from "../firebase";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -37,8 +37,9 @@ const Recipe = () => {
     notes: "",
   });
   const [editRemedy, setEditRemedy] = useState(null);
-
+  const navigate = useNavigate();
   const [coachName, setCoachName] = useState("");
+  const [patientName, setPatientName] = useState("");
   const [prescriptionDate, setPrescriptionDate] = useState(formatTodayDate());
 
   const [selectedRecipe, setSelectedRecipe] = useState("");
@@ -56,7 +57,7 @@ const Recipe = () => {
   // Save prescription to firebase
   const handleSaveToDatabase = async () => {
     if (!coachName || !prescriptionDate || !selectedRecipe) {
-      toast.error("Please fill in all fields.");
+      toast.error(t.fillAllFields || "Bitte füllen Sie alle Felder aus.");
       return;
     }
 
@@ -77,10 +78,13 @@ const Recipe = () => {
         createdAt: Timestamp.now(),
       });
 
-      toast.success("Prescription saved successfully!");
+      toast.success(t.recipeAdded || "Rezept erfolgreich hinzugefügt!");
+      navigate(`/patients/${patientId}`); // <-- Add this line
     } catch (error) {
       console.error("Error saving prescription:", error);
-      toast.error("Failed to save prescription.");
+      toast.error(
+        t.failedToSavePrescription || "Speichern des Rezepts fehlgeschlagen."
+      );
     }
   };
 
@@ -113,7 +117,7 @@ const Recipe = () => {
         const patientDoc = await getDoc(patientRef);
         if (patientDoc.exists()) {
           const patientData = patientDoc.data();
-          document.getElementById("user-name").textContent = patientData.name;
+          setPatientName(patientData.name || "");
         } else {
           console.error("No such patient document!");
         }
@@ -145,7 +149,7 @@ const Recipe = () => {
       };
 
       const docRef = await addDoc(collection(db, "recipes"), newRecipe);
-      toast.success("Recipe added successfully!");
+      toast.success(t.recipeAdded || "Rezept erfolgreich hinzugefügt!");
 
       // Update the RecipeBar immediately
       setRemedies([...remedies, { id: docRef.id, ...newRecipe }]);
@@ -211,8 +215,33 @@ const Recipe = () => {
     }
   };
 
-  const handlePrint = () => {
+  const loadImageAsBase64 = (url) => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = "Anonymous";
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0);
+        const dataURL = canvas.toDataURL("image/png");
+        resolve(dataURL);
+      };
+      img.onerror = reject;
+      img.src = url;
+    });
+  };
+
+  const handlePrint = async () => {
     const printContent = document.getElementById("print").cloneNode(true);
+
+    // Convert logo from public folder to base64
+    const logoBase64 = await loadImageAsBase64("/Logo.png");
+    const clonedLogo = printContent.querySelector("img");
+    if (clonedLogo) {
+      clonedLogo.src = logoBase64;
+    }
 
     // Replace textarea with plain text block
     const textareas = printContent.querySelectorAll("textarea");
@@ -248,18 +277,19 @@ const Recipe = () => {
       dateInput.parentNode.replaceChild(dateText, dateInput);
     }
 
-    // Sync patient name
-    const livePatientName = document.getElementById("user-name");
-    const clonedPatientName = printContent.querySelector("#user-name");
-    if (clonedPatientName && livePatientName) {
-      clonedPatientName.textContent = livePatientName.textContent;
+    // Replace patient name with <strong>
+    const patientInput = printContent.querySelector("#user-name");
+    if (patientInput) {
+      const patientText = document.createElement("strong");
+      patientText.textContent = patientInput.textContent;
+      patientInput.parentNode.replaceChild(patientText, patientInput);
     }
 
     // Remove Save button
     const saveBtn = printContent.querySelector("button");
     if (saveBtn) saveBtn.remove();
 
-    // Open new window for print so original stays intact
+    // Print logic
     const printWindow = window.open("", "", "width=900,height=650");
     if (printWindow) {
       printWindow.document.write(`
@@ -269,31 +299,52 @@ const Recipe = () => {
           <style>
             body { font-family: Arial, sans-serif; padding: 20px; }
             strong { font-weight: bold; }
+            img { max-width: 96px; max-height: 96px; object-fit: contain; float: right; }
           </style>
         </head>
-        <body>${printContent.innerHTML}</body>
+        <body>
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+            <div>
+              <h1 style="font-size: 20px; font-weight: bold; margin: 0;">Fernheilpraxis - Praxisgemeinschaft</h1>
+              <p style="margin: 4px 0;">Heilpraktiker Matthias Cebula</p>
+              <p style="margin: 4px 0; color: #2196F3;">www.fernheilpraxis.com</p>
+              <p style="margin: 4px 0; color: #666;">info@fernheilpraxis.com</p>
+            </div>
+            <img id="logo-img" src="${logoBase64}" alt="Logo" />
+          </div>
+          <hr />
+          ${printContent.innerHTML}
+          <script>
+            // Wait for the image to load before printing
+            const logo = document.getElementById('logo-img');
+            if (logo && !logo.complete) {
+              logo.onload = function() { window.print(); window.close(); };
+            } else {
+              window.print(); window.close();
+            }
+          </script>
+        </body>
       </html>
     `);
       printWindow.document.close();
       printWindow.focus();
-      printWindow.print();
-      printWindow.close();
     }
   };
 
-  const handleSaveAsPDF = () => {
+  // Save as PDF
+  const handleSaveAsPDF = async () => {
     const doc = new jsPDF();
-    const marginLeft = 15;
-    let currentY = 20;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const marginLeft = 8;
+    let currentY = 10;
 
     const printDiv = document.getElementById("print");
-
     if (!printDiv) {
       alert("Print section not found.");
       return;
     }
 
-    // Fetch dynamic values
     const coachName = document.getElementById("coach-name")?.value || "N/A";
     const prescriptionDate =
       document.querySelector("input[type='date']")?.value || "N/A";
@@ -302,113 +353,157 @@ const Recipe = () => {
     const recipeText =
       printDiv.querySelector("textarea")?.value || "No recipe provided.";
 
-    // === Header ===
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(16);
-    doc.text("Fernheilpraxis - Praxisgemeinschaft", marginLeft, currentY);
-    currentY += 8;
+    // === Load Logo ===
+    const logoImg = await loadImageAsBase64("/Logo.png");
 
+    // === Header ===
+    const headerX = marginLeft;
+    const headerTop = currentY;
+    const logoWidth = 40;
+    const logoHeight = 30;
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.setTextColor(0, 0, 0);
+    doc.text("Fernheilpraxis - Praxisgemeinschaft", headerX, headerTop);
+
+    if (logoImg) {
+      doc.addImage(
+        logoImg,
+        "PNG",
+        pageWidth - logoWidth - marginLeft,
+        headerTop - 4,
+        logoWidth,
+        logoHeight
+      );
+    }
+
+    currentY += 8;
     doc.setFont("helvetica", "normal");
     doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
     doc.text("Heilpraktiker Matthias Cebula", marginLeft, currentY);
     currentY += 6;
-    doc.setTextColor(33, 150, 243); // Blue color
+    doc.setTextColor(33, 150, 243);
     doc.text("www.fernheilpraxis.com", marginLeft, currentY);
     currentY += 6;
-    doc.setTextColor(100, 100, 100); // Dark gray
+    doc.setTextColor(100, 100, 100);
     doc.text("info@fernheilpraxis.com", marginLeft, currentY);
     currentY += 8;
 
-    // Line separator
     doc.setDrawColor(100);
     doc.setLineWidth(0.5);
-    doc.line(marginLeft, currentY, 200 - marginLeft, currentY);
-    currentY += 10;
+    doc.line(marginLeft, currentY, pageWidth - marginLeft, currentY);
+    currentY += 8;
 
     // === Details ===
     doc.setFont("helvetica", "bold");
     doc.setTextColor(0, 0, 0);
-    doc.text("Prescription Details", marginLeft, currentY);
-    currentY += 8;
+    doc.text("Rezept Daten", marginLeft, currentY);
+    currentY += 6;
 
     doc.setFont("helvetica", "normal");
     doc.text(`Coach: ${coachName}`, marginLeft, currentY);
     currentY += 6;
-    doc.text(`Date: ${prescriptionDate}`, marginLeft, currentY);
+    doc.text(`Datum: ${prescriptionDate}`, marginLeft, currentY);
     currentY += 6;
     doc.text(`Patient: ${patientName}`, marginLeft, currentY);
-    currentY += 10;
+    currentY += 6;
 
     // === Recipe Content ===
     doc.setFont("helvetica", "bold");
-    doc.text("Recipe", marginLeft, currentY);
-    currentY += 8;
+    doc.text("Rezept", marginLeft, currentY);
+    currentY += 6;
 
     doc.setFont("helvetica", "normal");
-    const wrappedText = doc.splitTextToSize(recipeText, 180);
-    doc.text(wrappedText, marginLeft, currentY);
+    const wrappedText = doc.splitTextToSize(
+      recipeText,
+      pageWidth - 2 * marginLeft
+    );
 
-    // Save the PDF
-    doc.save("prescription.pdf");
+    wrappedText.forEach((line) => {
+      if (currentY + 10 > pageHeight - 10) {
+        doc.addPage();
+        currentY = 20;
+      }
+      doc.text(line, marginLeft, currentY);
+      currentY += 6;
+    });
+
+    doc.save("Rezept.pdf");
   };
 
   return (
     <div className="flex flex-col md:flex-row bg-gray-50 min-h-screen">
-      <div
-        id="print"
-        className="w-full md:w-3/4 p-6 bg-white shadow-md rounded-md"
-      >
-        <div className="flex flex-col items-center justify-center mb-4">
-          <h1 className="text-2xl font-bold text-gray-800">
-            Fernheilpraxis - Praxisgemeinschaft
-          </h1>
-          <p className="text-gray-600">Heilpraktiker Matthias Cebula</p>
-          <p className="text-blue-500">www.fernheilpraxis.com</p>
-          <p className="text-gray-600">info@fernheilpraxis.com</p>
-        </div>
-        <hr className="border-t-4 border-gray-700 my-4" />
-        <div
-          id="date-coach"
-          className="flex items-center justify-between md:flex-row gap-4 mb-4"
-        >
-          <div className="flex w-1/4 gap-4 items-center">
-            <label htmlFor="coach-name" className="text-gray-700 font-medium">
-              {t.coach || "Coach:"}
-            </label>
-            <input
-              id="coach-name"
-              type="text"
-              placeholder={t.coachName || "Coach Name"}
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-              value={coachName}
-              onChange={(e) => setCoachName(e.target.value)}
+      <div className="w-full md:w-3/4 p-6 bg-white shadow-md rounded-md">
+        <div className="flex flex-row items-center justify-between mb-4">
+          {/* Left: Practice Info */}
+          <div className="flex flex-col items-start">
+            <h1 className="text-2xl font-bold text-gray-800">
+              Fernheilpraxis - Praxisgemeinschaft
+            </h1>
+            <p className="text-gray-600">Heilpraktiker Matthias Cebula</p>
+            <p className="text-blue-500">www.fernheilpraxis.com</p>
+            <p className="text-gray-600">info@fernheilpraxis.com</p>
+          </div>
+          {/* Right: Logo */}
+          <div id="" className="flex-shrink-0 ml-6">
+            <img
+              src="/Logo.png"
+              alt="Logo"
+              className="w-26 h-26 object-contain"
+              style={{ maxWidth: "96px", maxHeight: "96px" }}
             />
           </div>
-          <input
-            type="date"
-            className="w-full md:w-1/4 p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-            value={prescriptionDate}
-            onChange={(e) => setPrescriptionDate(e.target.value)}
-            placeholder={formatTodayDate()} // Set today's date as placeholder
+        </div>
+        <hr className="border-t-4 border-gray-700 my-4" />
+        <div className="" id="print">
+          <div
+            id="date-coach"
+            className="flex items-center justify-between md:flex-row gap-4 mb-4"
+          >
+            <div className="flex w-1/4 gap-4 items-center">
+              <label htmlFor="coach-name" className="text-gray-700 font-medium">
+                {t.coach || "Coach"}:
+              </label>
+              <input
+                id="coach-name"
+                type="text"
+                placeholder={t.coachName || "Coach Name"}
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-[#9c3435] focus:border-blue-500"
+                value={coachName}
+                onChange={(e) => setCoachName(e.target.value)}
+              />
+            </div>
+            <input
+              type="date"
+              className="w-full md:w-1/4 p-2 border border-gray-300 rounded-md focus:ring-[#9c3435] focus:border-blue-500"
+              value={prescriptionDate}
+              onChange={(e) => setPrescriptionDate(e.target.value)}
+              placeholder={formatTodayDate()} // Set today's date as placeholder
+            />
+          </div>
+          <div className="flex items-center gap-4 mb-4">
+            <label className="text-gray-700 font-medium" htmlFor="">
+              {t.patient || "Patient"}:
+            </label>
+            <p className="font-bold" id="user-name">
+              {patientName}
+            </p>
+          </div>
+          <textarea
+            value={selectedRecipe}
+            onChange={(e) => setSelectedRecipe(e.target.value)}
+            className="w-full h-90 md:h-[60vh] border border-gray-300 rounded-md p-4 focus:ring-[#9c3435] focus:border-blue-500 resize-none"
+            placeholder={
+              t.recipePlaceholder || "Type or edit your recipe here..."
+            }
           />
         </div>
-        <div className="flex items-center gap-4 mb-4">
-          <label className="text-gray-700 font-medium" htmlFor="">
-            {t.patient || "Patient:"}
-          </label>
-          <p className="font-bold" id="user-name"></p>
-        </div>
-        <textarea
-          value={selectedRecipe}
-          onChange={(e) => setSelectedRecipe(e.target.value)}
-          className="w-full h-90 md:h-[60vh] border border-gray-300 rounded-md p-4 focus:ring-blue-500 focus:border-blue-500 resize-none"
-          placeholder={
-            t.recipePlaceholder || "Type or edit your recipe here..."
-          }
-        />
+
         <button
           onClick={handleSaveToDatabase}
-          className="m-auto rounded-lg p-3 font-semibold text-white bg-blue-600"
+          className="m-auto rounded-lg p-3 font-semibold text-white bg-[#2f6e44]"
         >
           {t.saveToDatabase}
         </button>
@@ -417,9 +512,9 @@ const Recipe = () => {
         <div className="relative inline-block text-left" ref={dropdownRef}>
           <button
             onClick={toggleDropdown}
-            className="mb-4 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 w-full md:w-auto shadow-md"
+            className="mb-4 bg-[#2f6e44] text-white py-2 px-4 rounded-md hover:bg-[#a9d15e] focus:outline-none focus:ring-2 focus:ring-[#9c3435] focus:ring-offset-2 w-full md:w-auto shadow-md"
           >
-            {t.save} ▼
+            Export ▼
           </button>
 
           {isOpen && (
@@ -469,7 +564,7 @@ const Recipe = () => {
                 onChange={(e) =>
                   setNewRemedy({ ...newRemedy, name: e.target.value })
                 }
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-[#9c3435] focus:border-blue-500"
               />
               <input
                 type="text"
@@ -478,7 +573,7 @@ const Recipe = () => {
                 onChange={(e) =>
                   setNewRemedy({ ...newRemedy, source: e.target.value })
                 }
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-[#9c3435] focus:border-blue-500"
               />
               <textarea
                 placeholder="Instructions"
@@ -486,7 +581,7 @@ const Recipe = () => {
                 onChange={(e) =>
                   setNewRemedy({ ...newRemedy, instructions: e.target.value })
                 }
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-[#9c3435] focus:border-blue-500"
               />
               <textarea
                 placeholder="Notes"
@@ -494,7 +589,7 @@ const Recipe = () => {
                 onChange={(e) =>
                   setNewRemedy({ ...newRemedy, notes: e.target.value })
                 }
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-[#9c3435] focus:border-blue-500"
               />
               <div className="flex flex-col md:flex-row justify-end space-y-2 md:space-y-0 md:space-x-4">
                 <button
@@ -506,7 +601,7 @@ const Recipe = () => {
                 </button>
                 <button
                   type="submit"
-                  className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 w-full md:w-auto"
+                  className="bg-[#2f6e44] text-white py-2 px-4 rounded-md hover:bg-[#a9d15e] focus:outline-none focus:ring-2 focus:ring-[#9c3435] focus:ring-offset-2 w-full md:w-auto"
                 >
                   {editRemedy ? "Update" : "Save"}
                 </button>
